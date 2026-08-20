@@ -1,0 +1,170 @@
+/**
+ * Rifat Ahmed Portfolio theme — Tailwind v4 (CSS-first).
+ * Burgundy Wine / Soft Cream / Deep Black — see Design_System.md.
+ *
+ * Imported once in the root layout:
+ *   import "@/styles/globals.css";
+ *
+ * Token values live in :root and are exposed to Tailwind via
+ * `@theme inline`, so utilities like `bg-surface`, `text-primary`,
+ * `border-border` and `font-display` just work.
+ */
+@import "tailwindcss";
+
+:root {
+  /* Neutrals · deep black */
+  --background: #0b0b0b;
+  --surface: #111111;
+  --surface-elevated: #171515;
+
+  /* Text */
+  --foreground: #f8f1e7;
+  --foreground-muted: #d8cec1;
+  --foreground-subtle: #a49c93;
+
+  /* Brand · burgundy wine */
+  --primary: #5b0f18;
+  --primary-hover: #741522;
+  --primary-foreground: #f8f1e7;
+
+  --accent: #5b0f18;
+  --accent-soft: rgba(91, 15, 24, 0.18);
+
+  /* Borders + overlay */
+  --border: #302d2b;
+  --border-light: rgba(248, 241, 231, 0.12);
+  --overlay: rgba(11, 11, 11, 0.82);
+
+  /* Radius (font vars are overridden by next/font on <html>) */
+  --font-display: "Brunson", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-editorial: "Cormorant Garamond", serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-subtle: var(--foreground-subtle);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+
+  --color-border: var(--border);
+  --color-border-light: var(--border-light);
+  --color-overlay: var(--overlay);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-editorial: var(--font-editorial);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-card: 18px;
+  --radius-xl: 20px;
+  --radius-large: 24px;
+  --radius-pill: 9999px;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Editorial display headings — heavy condensed, open tracking, uppercase.
+     Brunson is already a condensed face, so the negative tracking this used
+     to carry (-0.02em) closed the counters up and made headings read as one
+     dense block. A hair of positive tracking lets the letterforms breathe
+     without loosening the editorial feel. */
+  .font-display,
+  h1.display,
+  .display {
+    font-family: var(--font-display);
+    letter-spacing: 0.008em;
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+}
+
+@layer utilities {
+  /* Tracked-out uppercase label ("ABOUT THE PROJECT", "KEY FEATURES") */
+  .label-overline {
+    font-family: var(--font-sans);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 600;
+    font-size: 0.72rem;
+    color: var(--foreground-subtle);
+  }
+
+  /* Left-to-right hover fill.
+     A pseudo-element wipes across the button on `scaleX`, anchored at the
+     left edge, instead of cross-fading `background-color`. It sits at
+     `z-index: -1` inside the button's own stacking context (`isolation`),
+     which paints it above the button's background but below its label, so
+     the text stays legible the whole way through the wipe.
+     Colour comes from `--sweep`; override per button. */
+  .btn-sweep {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .btn-sweep::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--sweep, var(--primary-hover));
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .btn-sweep:hover::before,
+  .btn-sweep:focus-visible::before {
+    transform: scaleX(1);
+  }
+  /* Leaving the button drains the fill off to the right rather than
+     rewinding it back to the left — the wipe always travels one way. */
+  .btn-sweep:not(:hover):not(:focus-visible)::before {
+    transform-origin: right center;
+  }
+  .btn-sweep:disabled::before {
+    transform: scaleX(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn-sweep::before {
+      transition-duration: 0.01ms;
+    }
+  }
+  /* The soft burgundy radial glow behind hero/feature panels */
+  .glow-radial {
+    background-image: radial-gradient(
+      120% 120% at 85% 0%,
+      color-mix(in srgb, var(--accent) 60%, transparent) 0%,
+      transparent 55%
+    );
+  }
+  /* Subtle burgundy focus ring */
+  .ring-brand:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary);
+  }
+  /* Fine film-grain noise — layer at low opacity over dark surfaces */
+  .bg-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+}

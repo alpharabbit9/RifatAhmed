@@ -1,0 +1,77 @@
+/**
+ * Stack — geometry for the React Bits card stack (JS + CSS variant).
+ *
+ * Layout only: every colour, border and shadow belongs to the cards handed in
+ * through the `cards` prop, so the same stack carries screenshots or whole
+ * project panels without knowing anything about either.
+ *
+ * Two deliberate changes from the upstream stylesheet:
+ *   · the class names are namespaced (`.stack-card`, not `.card`) — this is a
+ *     plain global stylesheet living next to Tailwind and a `components/ui/
+ *     card.tsx`, and `.card` is far too generic to claim;
+ *   · perspective and corner radius come from custom properties, because a
+ *     600px perspective and a 1rem radius are tuned for a 208px thumbnail and
+ *     both have to grow with the card.
+ *
+ * Note for anyone restyling from a consumer: these rules are unlayered, so
+ * they win over Tailwind utilities (which live in the `utilities` layer).
+ * Size the stack through its wrapper, exactly as the upstream example does.
+ */
+
+.stack {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+}
+
+.stack-container {
+  position: relative;
+  min-height: 0;
+  width: 100%;
+  flex: 1 1 auto;
+  perspective: var(--stack-perspective, 600px);
+}
+
+/* One per card: owns the drag offset and the pointer-driven 3D tilt. */
+.stack-rotate {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+}
+
+/* Drag suppressed (touch, or `mobileClickOnly`) — the card advances on tap. */
+.stack-rotate--static {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+.stack-card {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Opt-out via `clip={false}` for children that round and shadow themselves —
+   clipping here would eat the shadow that separates the cards in the fan. */
+.stack-card--clip {
+  overflow: hidden;
+  border-radius: var(--stack-card-radius, 1rem);
+}
+
+/* A dragged card must never start a native image drag. */
+.stack-card img {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.stack-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
