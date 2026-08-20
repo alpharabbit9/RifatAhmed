@@ -47,7 +47,7 @@ const NAV_ITEMS: NavItem[] = [
     href: "/admin/career-journey",
     label: "Career Journey",
     icon: Milestone,
-    built: false,
+    built: true,
   },
   { href: "/admin/services", label: "Services", icon: Briefcase, built: false },
   { href: "/admin/messages", label: "Messages", icon: Inbox, built: true },

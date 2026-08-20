@@ -31,8 +31,8 @@ Two halves, built section by section and shipped together:
 
 | Half | Route(s) | What it does |
 | --- | --- | --- |
-| **Public site** | `/`, `/projects/[slug]` | One-page portfolio (Hero → About & Tech Stack → Projects → Contact → Footer) plus a full case-study page per project. |
-| **Admin CMS** | `/admin/*` | Supabase-Auth-gated dashboard: edit About, full Projects CRUD with image uploads, read the contact inbox, manage socials + resume. |
+| **Public site** | `/`, `/projects/[slug]` | One-page portfolio (Hero → About & Tech Stack → Projects → Career Journey → Contact → Footer) plus a full case-study page per project. |
+| **Admin CMS** | `/admin/*` | Supabase-Auth-gated dashboard: edit About, full Projects CRUD with image uploads, manage the Career Journey timeline, read the contact inbox, manage socials + resume. |
 
 Design is not improvised — [Design_System.md](Design_System.md) is the source of
 truth for the palette, type scale, spacing, components and motion, and the code
@@ -67,6 +67,8 @@ for the rare JS-side colour.
   and a draggable card stack.
 - **Case study pages** (`/projects/[slug]`) — about, key features, tech stack,
   highlight stats, challenge / solution / impact, and an image gallery.
+- **Career Journey** — a single-rail timeline: company logo, period and duration,
+  what the company does, what the role owned, and the skills it used.
 - **Contact** — form posts straight into Postgres; no third-party email service
   in the loop.
 - **Motion** — Lenis smooth scrolling plus a small Framer Motion primitive set
@@ -84,6 +86,9 @@ for the rare JS-side colour.
 - Projects: create/edit/delete, draft ↔ published, featured flag, ordering, tag
   and technology entry, multi-image upload to Supabase Storage with one image
   flagged as the showcase.
+- Career Journey: section header copy plus per-role entries — dates (month
+  precision, or "I currently work here"), description, bullet highlights, skill
+  pills, logo upload and reordering.
 - Messages: inbox with read/unread triage.
 - Footer: social links plus resume upload to a stable public URL.
 
@@ -155,11 +160,12 @@ idempotent — re-running one changes nothing.
 | `0004_projects.sql` | `projects`, `project_images`, `media` storage bucket |
 | `0004_projects_demo_seed.sql` | Three placeholder projects (delete once real work ships) |
 | `0005_project_case_study.sql` | Case-study columns: `about`, `highlights`, `challenge`, `solution`, `impact` |
+| `0006_career_journey.sql` | `career_section` + `career_journey`, seeded with the first role |
 | `0007_contact_messages.sql` | `contact_messages` (anon insert, admin read) |
 | `0008_social_links_and_resume.sql` | `social_links` + `resume` storage bucket |
 
-> Numbering follows the build phases, so the gaps (0001, 0003, 0006) are
-> expected — those phases ship no schema of their own.
+> Numbering follows the build phases, so the gaps (0001, 0003) are expected —
+> those phases ship no schema of their own.
 
 ### 4. Create the admin user
 
@@ -203,7 +209,7 @@ app/
     login/                   Supabase email + password sign-in
     (dashboard)/             gated shell: nav, about, projects, messages, footer
 features/                    one folder per site section
-  hero/ about/ projects/ contact/ footer/
+  hero/ about/ projects/ career/ contact/ footer/
     *-section.tsx            public UI
     data.ts                  server-side reads (with fallbacks)
     actions.ts               "use server" mutations
@@ -257,14 +263,14 @@ Design_System.md             visual source of truth
 | 1 | Hero | ✅ | ⬜ |
 | 2 | About & Tech Stack | ✅ | ✅ |
 | 3 | Projects + case studies | ✅ | ✅ |
-| 4 | Career Journey | ⬜ | ⬜ |
+| 4 | Career Journey | ✅ | ✅ |
 | 5 | Services | ⬜ | ⬜ |
 | 6 | Contact | ✅ | ✅ |
 | 7 | Footer | ✅ | ✅ |
 
-Remaining: the Career Journey timeline and Services sections, a `/projects`
-index grid, plus the cross-cutting polish pass — metadata and per-project OG
-images, sitemap/robots, Vercel Analytics, accessibility and Lighthouse.
+Remaining: the Services section, a `/projects` index grid, plus the
+cross-cutting polish pass — metadata and per-project OG images, sitemap/robots,
+Vercel Analytics, accessibility and Lighthouse.
 
 ---
 

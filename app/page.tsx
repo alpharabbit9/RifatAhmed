@@ -2,6 +2,7 @@ import { NotchNavbar } from "@/components/ui";
 import { HeroSection } from "@/features/hero/hero-section";
 import { AboutSection } from "@/features/about/about-section";
 import { ProjectsSection } from "@/features/projects/projects-section";
+import { CareerSection } from "@/features/career/career-section";
 import { ContactSection } from "@/features/contact/contact-section";
 import { FooterSection } from "@/features/footer/footer-section";
 
@@ -13,7 +14,8 @@ export default function Home() {
         <HeroSection />
         <AboutSection />
         <ProjectsSection />
-        {/* Sections 5–6 (Career, Services) slot in here. */}
+        <CareerSection />
+        {/* Section 6 (Services) slots in here. */}
         <ContactSection />
       </main>
       <FooterSection />
