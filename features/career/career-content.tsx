@@ -22,7 +22,6 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, Building2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TechPill } from "@/components/ui";
@@ -33,6 +32,7 @@ import {
   ParallaxWatermark,
 } from "@/components/motion/scroll-parallax";
 import { Reveal, ScrollRule } from "@/components/motion/scroll-reveal";
+import { SectionScrollFx } from "@/components/motion/gsap/section-scroll-fx";
 import type { CareerEntry, CareerSection } from "@/features/career/data";
 import {
   formatDuration,
@@ -44,20 +44,18 @@ import {
 const CONTAINER =
   "mx-auto w-full max-w-[1440px] px-[max(20px,5vw)] xl:px-[60px]";
 
-const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
-
 /* -------------------------------------------------------------------------- */
 /* Company logo                                                               */
 /* -------------------------------------------------------------------------- */
 
 function CompanyLogo({ entry }: { entry: CareerEntry }) {
   const tile =
-    "relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[16px] border border-border-light bg-background sm:h-16 sm:w-16";
+    "relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[13px] border border-border-light bg-background sm:h-12 sm:w-12";
 
   if (!entry.logo_url) {
     return (
       <span className={cn(tile, "text-foreground-subtle")} aria-hidden>
-        <Building2 className="h-6 w-6" strokeWidth={1.5} />
+        <Building2 className="h-5 w-5" strokeWidth={1.5} />
       </span>
     );
   }
@@ -68,7 +66,7 @@ function CompanyLogo({ entry }: { entry: CareerEntry }) {
         src={entry.logo_url}
         alt={`${entry.company} logo`}
         fill
-        sizes="64px"
+        sizes="48px"
         // SVG can't go through the image optimizer without `dangerouslyAllowSVG`
         // (see constants.ts) — and company logos are routinely SVG.
         unoptimized={isVectorLogo(entry.logo_url)}
@@ -95,8 +93,6 @@ function TimelineEntry({
   entry: CareerEntry;
   isLast: boolean;
 }) {
-  const reduce = useReducedMotion() ?? false;
-
   const period = formatPeriod(entry.start_date, entry.end_date);
   const duration = formatDuration(entry.start_date, entry.end_date);
   const isCurrent = Boolean(entry.start_date) && !entry.end_date;
@@ -109,19 +105,22 @@ function TimelineEntry({
       )}
     >
       {/* ---------------- Period (desktop column) ---------------- */}
-      <div className="hidden lg:flex lg:flex-col lg:items-end lg:pt-5 lg:text-right">
+      <div
+        data-fx="date"
+        className="hidden lg:flex lg:flex-col lg:items-end lg:pt-3.5 lg:text-right"
+      >
         {period && (
-          <span className="font-display text-[15px] uppercase leading-none tracking-[0.02em] text-foreground">
+          <span className="font-display text-[13.5px] uppercase leading-none tracking-[0.02em] text-foreground">
             {period}
           </span>
         )}
         {duration && (
-          <span className="mt-2 font-sans text-[12.5px] text-foreground-subtle">
+          <span className="mt-1.5 font-sans text-[12px] text-foreground-subtle">
             {duration}
           </span>
         )}
         {entry.location && (
-          <span className="mt-3 inline-flex items-center gap-1.5 font-sans text-[12.5px] text-foreground-subtle">
+          <span className="mt-2 inline-flex items-center gap-1.5 font-sans text-[12px] text-foreground-subtle">
             <MapPin className="h-3 w-3 shrink-0" strokeWidth={1.75} />
             {entry.location}
           </span>
@@ -133,7 +132,7 @@ function TimelineEntry({
         {/* The node, level with the logo tile's centre. */}
         <span
           className={cn(
-            "absolute top-[30px] h-[11px] w-[11px] rounded-full border-2 bg-background sm:top-[34px]",
+            "absolute top-[32px] h-[11px] w-[11px] rounded-full border-2 bg-background sm:top-[38px]",
             isCurrent
               ? "border-primary shadow-[0_0_0_5px_rgba(91,15,24,0.25)]"
               : "border-foreground/30",
@@ -141,14 +140,17 @@ function TimelineEntry({
         />
 
         {/* The segment down to the next node — faded out on the last one so
-            the line ends rather than stopping dead. */}
-        <motion.span
-          initial={reduce ? undefined : { scaleY: 0 }}
-          whileInView={reduce ? undefined : { scaleY: 1 }}
-          viewport={{ once: true, amount: 0.05 }}
-          transition={{ duration: 0.9, ease: EASE }}
+            the line ends rather than stopping dead.
+
+            Drawn by GSAP rather than Framer (see `SectionScrollFx` below):
+            `scaleY` is tied to scroll *position*, so the rail extends and
+            retracts under the reader's hand instead of firing once. Under
+            `prefers-reduced-motion` GSAP never runs and the line is simply
+            present, which is why there is no `scaleY: 0` in the markup. */}
+        <span
+          data-fx="rail"
           className={cn(
-            "absolute bottom-0 top-[46px] w-px origin-top sm:top-[50px]",
+            "absolute bottom-0 top-[48px] w-px origin-top sm:top-[54px]",
             isLast
               ? "bg-gradient-to-b from-border to-transparent"
               : "bg-border",
@@ -157,10 +159,10 @@ function TimelineEntry({
       </div>
 
       {/* ---------------- Card ---------------- */}
-      <Reveal amount={0.12} distance={22} className="pb-10 lg:pb-14">
+      <Reveal amount={0.12} distance={22} className="pb-7 lg:pb-9">
         <article
           className={cn(
-            "group relative overflow-hidden rounded-[20px] border border-border bg-surface p-5 sm:p-7",
+            "group relative overflow-hidden rounded-[16px] border border-border bg-surface p-4 sm:p-5",
             "transition-colors duration-500 hover:border-primary/45",
           )}
         >
@@ -170,7 +172,7 @@ function TimelineEntry({
             className="glow-radial pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-40"
           />
 
-          <header className="relative flex items-start gap-4 sm:gap-5">
+          <header className="relative flex items-start gap-3.5 sm:gap-4">
             <CompanyLogo entry={entry} />
 
             <div className="min-w-0 flex-1">
@@ -179,11 +181,11 @@ function TimelineEntry({
                 <p className="label-overline lg:hidden">{period}</p>
               )}
 
-              <h3 className="mt-1.5 font-display text-[clamp(1.3rem,2.2vw,1.8rem)] uppercase leading-[1.05] tracking-[0.008em] text-foreground lg:mt-0">
+              <h3 className="mt-1 font-display text-[clamp(1.08rem,1.7vw,1.4rem)] uppercase leading-[1.05] tracking-[0.008em] text-foreground lg:mt-0">
                 {entry.role}
               </h3>
 
-              <p className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-sans text-[14.5px] text-foreground-muted">
+              <p className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-sans text-[13.5px] text-foreground-muted">
                 {entry.company_url ? (
                   <a
                     href={entry.company_url}
@@ -209,7 +211,7 @@ function TimelineEntry({
               </p>
 
               {/* Duration + location fold in under the company below lg. */}
-              <p className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-sans text-[12.5px] text-foreground-subtle lg:hidden">
+              <p className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-sans text-[12px] text-foreground-subtle lg:hidden">
                 {duration && <span>{duration}</span>}
                 {duration && entry.location && <Separator />}
                 {entry.location && (
@@ -222,40 +224,40 @@ function TimelineEntry({
             </div>
 
             {isCurrent && (
-              <span className="hidden shrink-0 items-center gap-2 rounded-full bg-accent-soft px-3 py-1.5 font-sans text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-foreground sm:inline-flex">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <span className="hidden shrink-0 items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-1 font-sans text-[0.63rem] font-semibold uppercase tracking-[0.14em] text-foreground sm:inline-flex">
+                <span className="h-1 w-1 rounded-full bg-primary" />
                 Present
               </span>
             )}
           </header>
 
           {entry.description && (
-            <p className="relative mt-5 max-w-[70ch] font-sans text-[15px] leading-[1.75] text-foreground-muted">
+            <p className="relative mt-4 max-w-[68ch] font-sans text-[13.5px] leading-[1.7] text-foreground-muted">
               {entry.description}
             </p>
           )}
 
           {entry.highlights.length > 0 && (
-            <ul className="relative mt-5 flex flex-col gap-2.5">
+            <ul className="relative mt-4 flex flex-col gap-2">
               {entry.highlights.map((highlight, index) => (
                 <li
                   key={index}
-                  className="flex gap-3 font-sans text-[14.5px] leading-[1.65] text-foreground-subtle"
+                  className="flex gap-2.5 font-sans text-[13px] leading-[1.6] text-foreground-subtle"
                 >
                   <span
                     aria-hidden
-                    className="mt-[9px] h-px w-4 shrink-0 bg-primary/70"
+                    className="mt-[8px] h-px w-3 shrink-0 bg-primary/70"
                   />
-                  <span className="max-w-[68ch]">{highlight}</span>
+                  <span className="max-w-[66ch]">{highlight}</span>
                 </li>
               ))}
             </ul>
           )}
 
           {entry.skills.length > 0 && (
-            <div className="relative mt-6 flex flex-wrap gap-2">
+            <div className="relative mt-4 flex flex-wrap gap-1.5">
               {entry.skills.map((skill) => (
-                <TechPill key={skill} className="text-[13px]">
+                <TechPill key={skill} className="text-[12px]">
                   {skill}
                 </TechPill>
               ))}
@@ -263,7 +265,7 @@ function TimelineEntry({
           )}
 
           {/* Hairline that draws across the card's foot on hover. */}
-          <div aria-hidden className="relative mt-6">
+          <div aria-hidden className="relative mt-5">
             <span className="block h-px w-full origin-left scale-x-0 bg-primary/60 transition-transform duration-700 group-hover:scale-x-100" />
           </div>
         </article>
@@ -298,6 +300,9 @@ export function CareerSectionContent({
       id="experience"
       className="relative isolate overflow-hidden bg-background py-24 sm:py-28 lg:py-36"
     >
+      {/* Scroll effect 04 — the rail draws itself as the reader descends. */}
+      <SectionScrollFx effect="timeline-draw" refreshKey={entries.length} />
+
       {/* Atmosphere — one burgundy glow and the film grain from §14. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute -right-[12%] top-[10%] h-[520px] w-[520px] rounded-full bg-primary/[0.09] blur-[180px]" />
@@ -358,7 +363,7 @@ export function CareerSectionContent({
         <ParallaxLayer depth={-18}>
           {/* Capped: the card measure stays editorial instead of stretching
               the description across the full 1440 container. */}
-          <ol className="mt-12 lg:mt-16 lg:max-w-[1120px]">
+          <ol className="mt-10 lg:mt-14 lg:max-w-[980px]">
             {entries.map((entry, entryIndex) => (
               <TimelineEntry
                 key={entry.id}

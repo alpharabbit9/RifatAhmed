@@ -33,7 +33,7 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, built: true },
-  { href: "/admin/hero", label: "Hero", icon: UserRound, built: false },
+  { href: "/admin/hero", label: "Hero", icon: UserRound, built: true },
   // Tech Stack is edited on the About screen — the two render as one section.
   {
     href: "/admin/about",
@@ -49,7 +49,7 @@ const NAV_ITEMS: NavItem[] = [
     icon: Milestone,
     built: true,
   },
-  { href: "/admin/services", label: "Services", icon: Briefcase, built: false },
+  { href: "/admin/services", label: "Services", icon: Briefcase, built: true },
   { href: "/admin/messages", label: "Messages", icon: Inbox, built: true },
   { href: "/admin/footer", label: "Footer", icon: PanelBottom, built: true },
 ];

@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { RollingText } from "@/components/motion/rolling-text";
 import { Reveal } from "@/components/motion/scroll-reveal";
 import { Stack } from "@/components/motion/stack";
+import { SectionScrollFx } from "@/components/motion/gsap/section-scroll-fx";
 import { ProjectShowcaseCard } from "@/features/projects/project-showcase-card";
 import type { ShowcaseProject } from "@/features/projects/types";
 
@@ -98,6 +99,9 @@ export function ProjectsSectionContent({
 
   return (
     <section id="projects" className="relative py-[clamp(80px,10vw,150px)]">
+      {/* Scroll effect 03 — the card stage tips flat as it arrives. */}
+      <SectionScrollFx effect="depth-stage" refreshKey={useStack ? "stack" : "run"} />
+
       <div className={CONTAINER}>
         <Reveal amount={0.6} distance={16}>
           <p className="flex items-center gap-4">
@@ -131,7 +135,10 @@ export function ProjectsSectionContent({
 
       {useStack ? (
         <div className="mt-[clamp(48px,6vw,88px)]">
-          <div className={cn("mx-auto w-[80vw] text-foreground", STACK_HEIGHT)}>
+          <div
+            data-fx="stage"
+            className={cn("mx-auto w-[80vw] text-foreground", STACK_HEIGHT)}
+          >
             <Stack
               cards={stackCards}
               // Tuned right down from the defaults, which are set for a 208px
@@ -139,18 +146,24 @@ export function ProjectsSectionContent({
               // as a glitch rather than a pile of cards.
               rotationStep={1.1}
               scaleStep={0.032}
-              tilt={9}
+              tilt={6}
               perspective={2200}
               // Cards fan from the bottom edge, so the titles stay level and
               // the pile shows itself along the bottom of the frame.
               transformOrigin="50% 100%"
-              sensitivity={140}
+              // A short flick, not a throw: at this size the card only has to
+              // move a little before the intent is obvious, and `dragElastic`
+              // keeps the card itself from sliding half the viewport to say so.
+              sensitivity={70}
+              dragElastic={0.35}
               // The card owns its radius and its drop shadow; clipping here
               // would cut the shadow that separates one card from the next.
               clip={false}
               // Never on click: the top card carries two links of its own.
               sendToBackOnClick={false}
-              animationConfig={{ stiffness: 210, damping: 26 }}
+              // Snappier and better damped than the default, so the swap is a
+              // short settle rather than a long swing.
+              animationConfig={{ stiffness: 300, damping: 34 }}
               indicators
               indicatorLabel={(position) =>
                 `Show ${projects[position]?.title ?? `project ${position + 1}`}`

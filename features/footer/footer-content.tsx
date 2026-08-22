@@ -33,6 +33,7 @@ import {
   RevealItem,
   ScrollMarquee,
 } from "@/components/motion/scroll-reveal";
+import { SectionScrollFx } from "@/components/motion/gsap/section-scroll-fx";
 import { scrollToTop } from "@/components/motion/smooth-scroll";
 
 const NAV_LINKS = [
@@ -137,8 +138,15 @@ export function FooterContent({
         <div className="bg-grain absolute inset-0 opacity-[0.03] mix-blend-overlay" />
       </div>
 
+      {/* Scroll effect 07 — the columns rise as the page lands on them. */}
+      <SectionScrollFx effect="footer-rise" />
+
       {/* Scroll-linked outline marquee — drifts only while the page moves */}
-      <div aria-hidden className="relative z-10 select-none pt-[clamp(48px,7vw,88px)]">
+      <div
+        aria-hidden
+        data-fx="counter"
+        className="relative z-10 select-none pt-[clamp(48px,7vw,88px)]"
+      >
         <ScrollMarquee distance={-18}>
           {Array.from({ length: 4 }).map((_, index) => (
             <span
@@ -152,7 +160,7 @@ export function FooterContent({
       </div>
 
       <div className="relative z-10 px-[clamp(24px,7.5vw,110px)] pb-10 pt-[clamp(40px,5vw,72px)]">
-        <div className="grid gap-[clamp(36px,4vw,64px)] md:grid-cols-2 lg:grid-cols-[1.4fr_0.8fr_0.9fr_1fr]">
+        <div data-fx="rise" className="grid gap-[clamp(36px,4vw,64px)] md:grid-cols-2 lg:grid-cols-[1.4fr_0.8fr_0.9fr_1fr]">
           {/* Brand ---------------------------------------------------------- */}
           <Reveal amount={0.2}>
             <p className="font-display text-[2rem] leading-[0.95] text-foreground">

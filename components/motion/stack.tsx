@@ -62,12 +62,14 @@ function StackCardRotate({
   onSendToBack,
   sensitivity,
   tilt,
+  dragElastic,
   draggable,
 }: {
   children: React.ReactNode;
   onSendToBack: () => void;
   sensitivity: number;
   tilt: number;
+  dragElastic: number;
   draggable: boolean;
 }) {
   const x = useMotionValue(0);
@@ -103,7 +105,7 @@ function StackCardRotate({
       style={{ x, y, rotateX, rotateY }}
       drag
       dragConstraints={{ top: 0, right: 0, bottom: 0, left: 0 }}
-      dragElastic={0.6}
+      dragElastic={dragElastic}
       whileTap={{ cursor: "grabbing" }}
       onDragEnd={handleDragEnd}
     >
@@ -123,6 +125,12 @@ export interface StackProps {
   randomRotation?: boolean;
   /** Drag distance, in px, that sends the top card to the back. */
   sensitivity?: number;
+  /**
+   * How far the card follows the pointer, 0–1. Lower keeps the swipe contained
+   * — a full-bleed card sliding its own width across the page is a lot more
+   * movement than the same fraction on a thumbnail.
+   */
+  dragElastic?: number;
   animationConfig?: StackAnimationConfig;
   /** Also advance on click. Leave off when the cards contain their own links. */
   sendToBackOnClick?: boolean;
@@ -157,6 +165,7 @@ export function Stack({
   cards = [],
   randomRotation = false,
   sensitivity = 200,
+  dragElastic = 0.6,
   animationConfig = { stiffness: 260, damping: 20 },
   sendToBackOnClick = false,
   autoplay = false,
@@ -268,6 +277,7 @@ export function Stack({
               onSendToBack={() => sendToBack(card)}
               sensitivity={sensitivity}
               tilt={reduce ? 0 : tilt}
+              dragElastic={dragElastic}
               draggable={draggable}
             >
               <motion.div

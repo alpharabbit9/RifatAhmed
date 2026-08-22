@@ -28,6 +28,7 @@ import {
   RevealItem,
   ScrollRule,
 } from "@/components/motion/scroll-reveal";
+import { GsapWords } from "@/components/motion/gsap/gsap-words";
 
 const DEFAULT_EMAIL = "hello@rifatahmed.dev";
 
@@ -320,10 +321,11 @@ export function ContactSection({
             </RevealGroup>
 
             <Reveal delay={0.15} className="mt-8">
+              {/* Scroll effect 06 — the pitch lights up a word at a time as
+                  the paragraph crosses the viewport (GsapWords). Framer still
+                  owns the block's entrance; GSAP only touches the words. */}
               <p className="max-w-[430px] border-l-2 border-primary/40 pl-4 font-sans text-[15px] leading-[1.65] text-[rgba(248,241,231,0.78)]">
-                Have a product to build, a workflow to automate, or a role to
-                fill? Tell me what you&apos;re working on — I read every message
-                and reply personally, usually within a day.
+                <GsapWords text="Have a product to build, a workflow to automate, or a role to fill? Tell me what you're working on — I read every message and reply personally, usually within a day." />
               </p>
             </Reveal>
 

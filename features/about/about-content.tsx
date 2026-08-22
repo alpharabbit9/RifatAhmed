@@ -22,6 +22,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RollingLines, RollingText } from "@/components/motion/rolling-text";
+import { SectionScrollFx } from "@/components/motion/gsap/section-scroll-fx";
 import {
   ParallaxLayer,
   ParallaxScene,
@@ -307,6 +308,9 @@ export function AboutSectionContent({
       id="about"
       className="relative isolate overflow-hidden bg-background py-24 sm:py-28 lg:py-36"
     >
+      {/* Scroll effect 02 — the stack leans with the scroll and settles. */}
+      <SectionScrollFx effect="velocity-skew" refreshKey={groups.length} />
+
       {/* Atmosphere — two burgundy glows and the film grain from §14. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute -left-[12%] top-[12%] h-[560px] w-[560px] rounded-full bg-primary/[0.10] blur-[180px]" />
@@ -371,21 +375,26 @@ export function AboutSectionContent({
 
             <ScrollRule className="mt-10" />
 
-            <ParallaxLayer depth={-22}>
-              <RevealGroup
-                stagger={0.12}
-                amount={0.15}
-                className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3"
-              >
-                {groups.map((group, index) => (
-                  <SkillGroupCard
-                    key={group.id}
-                    group={group}
-                    index={index}
-                  />
-                ))}
-              </RevealGroup>
-            </ParallaxLayer>
+            {/* `data-fx="skew"` is this wrapper, not the cards: Framer owns
+                the cards' entrance transform, GSAP owns the lean, and the two
+                compose because they write to different elements. */}
+            <div data-fx="skew">
+              <ParallaxLayer depth={-22}>
+                <RevealGroup
+                  stagger={0.12}
+                  amount={0.15}
+                  className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3"
+                >
+                  {groups.map((group, index) => (
+                    <SkillGroupCard
+                      key={group.id}
+                      group={group}
+                      index={index}
+                    />
+                  ))}
+                </RevealGroup>
+              </ParallaxLayer>
+            </div>
           </div>
         )}
       </div>
