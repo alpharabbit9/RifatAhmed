@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npx shadcn@latest --help)",
       "Bash(npx shadcn@latest init --help)",
-      "Bash(npx shadcn@latest add --help)"
+      "Bash(npx shadcn@latest add --help)",
+      "Bash(git push *)"
     ]
   }
 }
