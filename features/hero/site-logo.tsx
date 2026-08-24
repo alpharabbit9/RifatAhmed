@@ -17,7 +17,10 @@ export async function SiteLogo() {
 
   return (
     <Link
-      href="#home"
+      // Absolute, not `#home`: the navbar renders on `/projects` too, where a
+      // bare fragment would go nowhere. On the home page `SmoothScroll` still
+      // treats it as a same-page anchor and scrolls.
+      href="/#home"
       aria-label="Home"
       className="group relative flex items-center justify-center"
     >

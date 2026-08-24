@@ -268,7 +268,14 @@ function Screenshot({
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.7, ease: EASE_EDITORIAL, delay }}
       className={cn(
-        "relative overflow-hidden rounded-[24px] bg-[#100E0E] lg:h-full",
+        // A fixed 16:10 frame at every width, never the full height of the
+        // card's band: the band is close to square, so stretching the frame
+        // to fill it is what used to crop a third off the sides of a 16:9
+        // screenshot. `lg:max-h-full` is the safety rail for a short viewport
+        // — if the band can't give the frame its full 16:10 height, the frame
+        // widens instead and `object-contain` still shows the whole shot.
+        "relative aspect-[16/10] w-full overflow-hidden rounded-[24px] bg-[#0B0A0A]",
+        "lg:max-h-full",
         "border border-[rgba(248,241,231,0.25)]",
         "shadow-[0_34px_70px_-34px_rgba(0,0,0,0.95)]",
         "lg:rounded-[clamp(14px,2.2vh,22px)]",
@@ -278,40 +285,39 @@ function Screenshot({
         reduce ? "" : "-translate-y-1 group-hover:-translate-y-2.5",
       )}
     >
-      {/* 16:10 while stacked; on desktop it fills whatever height the card's
-          band leaves. `object-cover` throughout — the shot is only ever
-          cropped, never stretched. */}
-      <div className="relative aspect-[16/10] w-full lg:aspect-auto lg:h-full">
-        {showImage ? (
-          <Image
-            src={src as string}
-            alt={alt}
-            fill
-            // The right column is ~51% of an 80vw card.
-            sizes="(max-width: 1024px) 92vw, 41vw"
-            className="object-cover object-top"
-            onError={() => setFailed(true)}
+      {/* `object-contain`, the same rule the case-study gallery follows: a
+          screenshot is never cropped and never stretched (§15), and the
+          letterbox is the frame's own near-black, so a 16:9 shot reads as
+          flush against a 16:10 frame. */}
+      {showImage ? (
+        <Image
+          src={src as string}
+          alt={alt}
+          fill
+          // The right column is ~51% of an 80vw card.
+          sizes="(max-width: 1024px) 92vw, 41vw"
+          className="object-contain object-center"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <div
+          className="flex h-full w-full flex-col items-center justify-center gap-3"
+          style={{
+            backgroundImage:
+              "radial-gradient(90% 90% at 70% 10%, color-mix(in srgb, var(--primary) 32%, transparent) 0%, transparent 70%)",
+          }}
+        >
+          <ImageOff
+            aria-hidden
+            className="h-7 w-7 lg:h-[clamp(18px,2.8vh,28px)] lg:w-[clamp(18px,2.8vh,28px)]"
+            strokeWidth={1.4}
+            style={{ color: ACCENT_TINT }}
           />
-        ) : (
-          <div
-            className="flex h-full w-full flex-col items-center justify-center gap-3"
-            style={{
-              backgroundImage:
-                "radial-gradient(90% 90% at 70% 10%, color-mix(in srgb, var(--primary) 32%, transparent) 0%, transparent 70%)",
-            }}
-          >
-            <ImageOff
-              aria-hidden
-              className="h-7 w-7 lg:h-[clamp(18px,2.8vh,28px)] lg:w-[clamp(18px,2.8vh,28px)]"
-              strokeWidth={1.4}
-              style={{ color: ACCENT_TINT }}
-            />
-            <p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em] text-[rgba(248,241,231,0.45)] lg:text-[clamp(9px,1.4vh,12px)]">
-              Screenshot coming soon
-            </p>
-          </div>
-        )}
-      </div>
+          <p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em] text-[rgba(248,241,231,0.45)] lg:text-[clamp(9px,1.4vh,12px)]">
+            Screenshot coming soon
+          </p>
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -648,7 +654,9 @@ export function ProjectShowcaseCard({
             <FeatureGrid features={project.features} />
           </motion.div>
 
-          <div className="min-h-0 min-w-0">
+          {/* The frame is 16:10, the band is near-square — so centre it
+              rather than letting it hang from the top of the column. */}
+          <div className="flex min-h-0 min-w-0 items-center justify-center">
             <Screenshot
               src={project.screenshot}
               alt={project.screenshotAlt ?? project.title}

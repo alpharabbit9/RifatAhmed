@@ -133,6 +133,7 @@ export function toShowcaseProject(row: ProjectRow): ShowcaseProject {
     technologies: row.technologies ?? [],
     year: row.year ?? "",
     role: row.role ?? "",
+    featured: row.featured ?? false,
     projectUrl: projectHref(row.slug),
     liveDemo: row.live_demo_url?.trim() ? row.live_demo_url : undefined,
   };

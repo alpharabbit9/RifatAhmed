@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import {
+  Award,
   Briefcase,
   FileText,
   FolderKanban,
@@ -50,6 +51,12 @@ const NAV_ITEMS: NavItem[] = [
     built: true,
   },
   { href: "/admin/services", label: "Services", icon: Briefcase, built: true },
+  {
+    href: "/admin/achievements",
+    label: "Achievements",
+    icon: Award,
+    built: true,
+  },
   { href: "/admin/messages", label: "Messages", icon: Inbox, built: true },
   { href: "/admin/footer", label: "Footer", icon: PanelBottom, built: true },
 ];

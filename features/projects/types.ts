@@ -62,6 +62,11 @@ export interface ShowcaseProject {
    */
   year: string;
   role: string;
+  /**
+   * Whether the project is in the home page's featured set. The `/projects`
+   * index tags those tiles; the home section filters on it (see `data.ts`).
+   */
+  featured?: boolean;
   /** Route to the case study — `/projects/<slug>`. */
   projectUrl: string;
   /** Omitted/undefined hides the Live Demo button entirely. */

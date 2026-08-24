@@ -19,6 +19,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCaseStudyProject } from "@/features/projects/data";
 import { ProjectCaseStudy } from "@/features/projects/detail/project-case-study";
+import { toMetaDescription } from "@/lib/site";
 
 const loadProject = cache(getCaseStudyProject);
 
@@ -31,21 +32,32 @@ export async function generateMetadata({
   const project = await loadProject(slug);
 
   if (!project) {
-    return { title: "Project not found — Rifat Ahmed" };
+    return { title: "Project not found" };
   }
 
   const title = project.subtitle
     ? `${project.title} — ${project.subtitle}`
     : project.title;
 
+  const description = toMetaDescription(
+    project.description || project.about[0],
+  );
+
+  // `title.absolute` opts out of the root layout's "%s | Rifat Ahmed"
+  // template: a case-study title plus its subtitle is already long enough
+  // without a suffix, and the site name is on the card anyway.
+  //
+  // No `openGraph.images` either — `opengraph-image.tsx` in this folder
+  // renders the card for this exact slug, and setting both would emit two.
   return {
-    title: `${title} | Rifat Ahmed`,
-    description: project.description || undefined,
+    title: { absolute: `${title} | Rifat Ahmed` },
+    description,
+    alternates: { canonical: `/projects/${slug}` },
     openGraph: {
       type: "article",
+      url: `/projects/${slug}`,
       title,
-      description: project.description || undefined,
-      images: project.gallery[0]?.url ? [project.gallery[0].url] : undefined,
+      description,
     },
   };
 }

@@ -1,0 +1,688 @@
+/**
+ * Phase 7 — the certificate wall: the room, the lighting, and the frames.
+ *
+ * This lives in a stylesheet rather than in Tailwind classes because almost
+ * none of it is a utility: a photographic backdrop pinned to the viewport,
+ * layered gradient recipes, a masked light cone, a five-part box-shadow that
+ * makes a moulding read as carved rather than drawn, and container queries
+ * that let one typeset plate scale from a 240px card to a 1100px viewer.
+ * Written as Tailwind arbitrary values these would be unreadable strings
+ * nobody could tune.
+ *
+ * It is deliberately NOT in `styles/globals.css` — nothing here is reusable
+ * outside this section, and that file is shared with every other phase.
+ * Imported once, from `achievements-gallery.tsx`.
+ *
+ * Colour discipline (Design_System.md): the wall is Deep Black, the paper is
+ * Soft Cream, burgundy is the only accent. The warm light is not a fourth
+ * brand colour — it is white light through a tungsten bulb, which is what
+ * makes the black read as a painted wall instead of a background.
+ */
+
+/* -------------------------------------------------------------------------- */
+/* Animatable lighting variables                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * `--lit` is a card's light level and `--lift` is how far its frame rises.
+ * Registering them makes them *interpolatable* — a bare custom property jumps
+ * from one value to the next, so every gradient built on `--lit` would snap
+ * on hover no matter what `transition` the frame carried. With these two
+ * declarations the whole fixture — bulb, bloom, cone, wall pool and the
+ * highlight along the frame's top edge — swells together over half a second,
+ * which is the difference between a lamp coming up and a light switch.
+ *
+ * Browsers without `@property` still get the effect, just instantly.
+ */
+@property --lit {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --lift {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* The room                                                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The backdrop photograph, fixed to the viewport: the wall does not scroll,
+ * the certificates scroll past it. That is the whole conceit of the page —
+ * you are standing in one room, walking along one wall — and it is why this
+ * is `position: fixed` rather than a background on the section.
+ *
+ * Nothing in the ancestor chain may carry `transform`, `filter` or `contain`,
+ * or the fixed positioning would resolve against *that* box instead of the
+ * viewport. The section is plain, and Lenis animates the native scroll
+ * position rather than transforming a wrapper, so this holds.
+ *
+ * `--room-drop` is the band of plain wall left above the photograph. The
+ * pendant lamps sit within the top few percent of the image, so without the
+ * drop they land behind the floating navbar and read as glints rather than as
+ * fixtures. The band is painted in the same near-black as the photo's own top
+ * edge, which is what makes the seam invisible.
+ */
+.achv-room {
+  --room-drop: clamp(58px, 8vh, 104px);
+  background-color: #070707;
+}
+
+.achv-room-shot {
+  position: absolute;
+  top: var(--room-drop);
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.achv-room-img {
+  object-fit: cover;
+  /* Anchored near the top: the lamps and their throw are the part of the
+     frame that matters, and the console at the foot of the wall is the part
+     that can be cropped without the room stopping being a room. */
+  object-position: 50% 12%;
+}
+
+/**
+ * Grading. The photograph is warmer and flatter than the site's palette, so a
+ * burgundy wash goes into the left wall and the foot of the frame is carried
+ * down into Deep Black — which is also what stops the certificates in the
+ * lower rows from sitting on a visibly brown floor.
+ */
+.achv-room-grade {
+  background-image:
+    radial-gradient(
+      58% 42% at 13% 26%,
+      rgba(91, 15, 24, 0.11) 0%,
+      transparent 72%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      transparent 24%,
+      rgba(7, 7, 7, 0.34) 46%,
+      rgba(7, 7, 7, 0.66) 72%,
+      rgba(7, 7, 7, 0.9) 100%
+    );
+}
+
+/**
+ * Matte plaster, built from an SVG turbulence run through a distant light.
+ * `feDiffuseLighting` is what separates this from film grain: the noise is
+ * lit from the upper left, so the grain has a *direction* and reads as a
+ * troweled surface rather than as sensor noise sitting on top of one.
+ *
+ * It is much quieter than it was before the photograph arrived — the wall now
+ * brings its own texture, and this only has to carry the plain band above the
+ * photo and the black it fades into below.
+ */
+.achv-plaster {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='340'%20height='340'%3E%3Cfilter%20id='p'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.72'%20numOctaves='4'%20seed='11'%20stitchTiles='stitch'/%3E%3CfeDiffuseLighting%20lighting-color='%23ffffff'%20surfaceScale='1.7'%3E%3CfeDistantLight%20azimuth='118'%20elevation='56'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect%20width='100%25'%20height='100%25'%20filter='url(%23p)'/%3E%3C/svg%3E");
+  background-size: 340px 340px;
+  background-repeat: repeat;
+  /* `overlay` against the room's own near-black: below 50% grey the formula
+     is 2 x base x blend, so the plaster can only ever lift #070707 to about
+     #121212 — texture without ever surrendering the Deep Black. It relies on
+     the black being inside the same stacking context; see `.achv-room` in
+     `achievements-gallery.tsx`. */
+  mix-blend-mode: overlay;
+  opacity: 0.3;
+}
+
+/** Edges fall away, the way a room does past the throw of its lights. */
+.achv-vignette {
+  background-image: radial-gradient(
+    122% 92% at 50% 30%,
+    transparent 40%,
+    rgba(7, 7, 7, 0.4) 76%,
+    rgba(7, 7, 7, 0.86) 100%
+  );
+}
+
+/** A faint architectural datum line, the way a gallery marks hanging height. */
+.achv-datum {
+  background-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(248, 241, 231, 0.08) 18%,
+    rgba(248, 241, 231, 0.08) 82%,
+    transparent 100%
+  );
+}
+
+/**
+ * The pool of light the header sits in. The photograph's three pendants throw
+ * across the top of the wall; this puts a matching wash directly behind the
+ * title, so cream type on a near-black wall never has to rely on the photo
+ * happening to be bright in the right place at the reader's viewport size.
+ */
+.achv-header-wash {
+  background-image: radial-gradient(
+    62% 58% at 50% 22%,
+    rgba(255, 206, 146, 0.075) 0%,
+    rgba(255, 196, 132, 0.028) 42%,
+    transparent 74%
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* One hung certificate                                                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Hover and keyboard focus raise `--lit`, and every lighting layer below
+ * multiplies its opacity by it — so one property change brightens the bulb,
+ * its bloom, the cone, the wall pool and the frame's top highlight together,
+ * which is what keeps the effect reading as a lamp rather than as six
+ * unrelated CSS transitions.
+ */
+.achv-card {
+  --lit: 1;
+  --lift: 0px;
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  transition:
+    --lit 0.55s cubic-bezier(0.33, 1, 0.68, 1),
+    --lift 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.achv-card:hover,
+.achv-card:focus-within {
+  --lit: 1.7;
+  --lift: -7px;
+}
+
+/* The lamp fixture ------------------------------------------------------- */
+
+/**
+ * A picture light, drawn to match the pendants in the backdrop photograph:
+ * a cord, a spun-metal cone hanging from it, a hot rim where the shade opens,
+ * the bulb itself, and the bloom the bulb puts into the air around it.
+ */
+/**
+ * `width: max-content` matters: the lamp is a flex column, and left as a
+ * block it would stretch to the full width of the card — every percentage
+ * inside it (the bulb, the bloom) would then be measured against the card
+ * rather than against the shade.
+ */
+.achv-lamp {
+  position: relative;
+  display: flex;
+  width: max-content;
+  flex-direction: column;
+  align-items: center;
+  margin-inline: auto;
+}
+
+/** Cord, plus the collar where it enters the shade. */
+.achv-cord {
+  width: 1px;
+  height: clamp(14px, 1.6vw, 21px);
+  background-image: linear-gradient(
+    to bottom,
+    rgba(248, 241, 231, 0.04) 0%,
+    rgba(186, 156, 116, 0.34) 62%,
+    rgba(206, 176, 134, 0.7) 100%
+  );
+}
+
+/**
+ * The shade: the pendants in the backdrop photograph, at card scale. Taller
+ * than it is wide at the neck and flaring to a slightly belled mouth, which
+ * is what stops it reading as a plain triangle stuck on the end of a line.
+ *
+ * The gradient runs *across* the cone rather than down it — that
+ * cross-lighting is what makes a flat clip-path read as turned metal, and it
+ * is keyed to the same upper-left source as the plaster's `feDistantLight`.
+ */
+.achv-shade {
+  position: relative;
+  width: clamp(28px, 2.7vw, 37px);
+  height: clamp(19px, 1.95vw, 27px);
+  clip-path: polygon(39% 0%, 61% 0%, 100% 87%, 97% 100%, 3% 100%, 0% 87%);
+  background-image: linear-gradient(
+    102deg,
+    #0c0908 0%,
+    #241d1a 18%,
+    #453931 42%,
+    #1f1916 68%,
+    #0a0807 100%
+  );
+}
+
+/** The lit rim of the mouth — the brightest hard edge on the whole card. */
+.achv-shade-lip {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background-image: linear-gradient(
+    to right,
+    rgba(255, 190, 118, calc(0.4 * var(--lit))) 0%,
+    rgba(255, 238, 200, calc(0.98 * var(--lit))) 50%,
+    rgba(255, 190, 118, calc(0.4 * var(--lit))) 100%
+  );
+}
+
+/**
+ * The bulb. A sibling of the shade rather than a child of it, because
+ * `clip-path` clips descendants — nested inside, the glow was cut off at the
+ * mouth and only the 2px rim ever showed. Out here it can sit *in* the mouth
+ * and spill below it, which is what a filament in an open shade does.
+ */
+.achv-bulb {
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  width: 78%;
+  height: 10px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background-image: radial-gradient(
+    ellipse at 50% 34%,
+    rgba(255, 252, 242, calc(0.98 * var(--lit))) 0%,
+    rgba(255, 224, 172, calc(0.72 * var(--lit))) 38%,
+    rgba(255, 198, 132, calc(0.24 * var(--lit))) 66%,
+    transparent 80%
+  );
+  filter: blur(2px);
+}
+
+/**
+ * The bloom: the halo a filament puts into the air immediately around itself,
+ * as distinct from the pool it throws on the wall. Kept tight and warm — wide
+ * and pale it stops reading as light and starts reading as fog.
+ */
+.achv-bloom {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  width: clamp(58px, 5.6vw, 82px);
+  aspect-ratio: 1;
+  translate: -50% 0;
+  border-radius: 50%;
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 216, 158, calc(0.3 * var(--lit))) 0%,
+    rgba(255, 196, 126, calc(0.11 * var(--lit))) 32%,
+    rgba(255, 184, 112, calc(0.028 * var(--lit))) 54%,
+    transparent 72%
+  );
+  filter: blur(7px);
+}
+
+/* The light ------------------------------------------------------------- */
+
+/**
+ * The cone. A clip-path narrow at the bulb and wide at the frame, filled with
+ * a gradient that fades out well before its lower edge — so the shape never
+ * shows a hard boundary, only light thinning into the wall.
+ *
+ * The horizontal mask is what the earlier version was missing: a blur alone
+ * still leaves the two straight sides of the polygon visible as edges. Fading
+ * the cone out sideways as well means it has no edges at all, only a middle
+ * that is bright and a periphery that is not — which is how a throw of light
+ * actually behaves.
+ */
+.achv-cone {
+  clip-path: polygon(44% 0%, 56% 0%, 108% 100%, -8% 100%);
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 219, 168, calc(0.2 * var(--lit))) 0%,
+    rgba(255, 208, 150, calc(0.1 * var(--lit))) 34%,
+    rgba(255, 198, 134, calc(0.035 * var(--lit))) 64%,
+    transparent 94%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.55) 26%,
+    #000 46%,
+    #000 54%,
+    rgba(0, 0, 0, 0.55) 74%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.55) 26%,
+    #000 46%,
+    #000 54%,
+    rgba(0, 0, 0, 0.55) 74%,
+    transparent 100%
+  );
+  filter: blur(13px);
+}
+
+/**
+ * The pool the fixture throws on the wall behind and around the frame — the
+ * layer that does most of the work. In the backdrop photograph there is no
+ * visible beam in the air at all, only a soft warm ellipse on the plaster;
+ * the cone above is deliberately faint so that stays true here.
+ */
+.achv-pool {
+  background-image: radial-gradient(
+    64% 52% at 50% 4%,
+    rgba(255, 212, 156, calc(0.34 * var(--lit))) 0%,
+    rgba(255, 202, 138, calc(0.15 * var(--lit))) 26%,
+    rgba(255, 192, 124, calc(0.05 * var(--lit))) 50%,
+    rgba(255, 186, 116, calc(0.012 * var(--lit))) 70%,
+    transparent 86%
+  );
+  filter: blur(6px);
+}
+
+/* The hanging wire ------------------------------------------------------- */
+
+.achv-wire {
+  stroke: rgba(176, 146, 108, 0.55);
+  stroke-width: 1;
+}
+
+.achv-nail {
+  background-image: radial-gradient(
+    circle at 35% 30%,
+    rgba(216, 186, 140, 0.95),
+    rgba(94, 74, 52, 0.9)
+  );
+}
+
+/* The frame -------------------------------------------------------------- */
+
+/**
+ * Dark wood with a bronze inner lip. The moulding is a padding band filled
+ * with a gradient that runs light-dark-light across the bevel, and the
+ * shadow stack does the rest:
+ *   inset 1px black       — the outer arris
+ *   inset top cream       — the light catching the top edge (scaled by --lit)
+ *   inset bottom black    — the underside in shade
+ *   two outer shadows     — contact, then the soft throw onto the wall
+ *
+ * The throw deepens with `--lit` through the same registered variable: a
+ * brighter lamp casts a longer shadow, so there is no separate hover rule for
+ * the box-shadow any more.
+ */
+.achv-frame {
+  position: relative;
+  padding: clamp(7px, 0.85vw, 13px);
+  border-radius: 3px;
+  background-image: linear-gradient(
+    155deg,
+    #5d4632 0%,
+    #33251c 24%,
+    #6d5339 47%,
+    #2a1e17 72%,
+    #4b3627 100%
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.6),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.65),
+    0 2px 5px rgba(0, 0, 0, 0.6),
+    0 calc(16px + 9px * var(--lit)) calc(28px + 12px * var(--lit)) -14px
+      rgba(0, 0, 0, 0.96);
+  transform: translateY(var(--lift));
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/**
+ * The light catching the top edge of the moulding.
+ *
+ * This used to be an `inset 0 1px 0` in the stack above, which laid a cream
+ * hairline of one uniform brightness across the whole width — a light strip,
+ * not a lit edge. A single lamp hangs over the middle of the frame, so the
+ * highlight has to be brightest there and gone by the corners. A gradient can
+ * say that; a box-shadow cannot.
+ */
+.achv-frame::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  height: 1px;
+  border-radius: 3px 3px 0 0;
+  background-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 231, 196, calc(0.1 * var(--lit))) 24%,
+    rgba(255, 242, 220, calc(0.4 * var(--lit))) 50%,
+    rgba(255, 231, 196, calc(0.1 * var(--lit))) 76%,
+    transparent 100%
+  );
+}
+
+/** The mat board, with the bronze lip sitting between it and the wood. */
+.achv-mat {
+  padding: clamp(4px, 0.6vw, 9px);
+  background-image: linear-gradient(160deg, #efe7db 0%, #dcd0be 100%);
+  box-shadow:
+    0 0 0 1px rgba(198, 150, 92, 0.5),
+    inset 0 1px 2px rgba(36, 27, 27, 0.28);
+}
+
+/**
+ * The opening. `container-type: inline-size` is what lets the typeset plate
+ * below size itself in `cqw` — the same markup then reads correctly at card
+ * size and at 1100px in the viewer, with no second set of type styles.
+ */
+.achv-window {
+  position: relative;
+  container-type: inline-size;
+  overflow: hidden;
+  background-color: #f4ece0;
+  box-shadow: inset 0 0 26px rgba(88, 58, 30, 0.2);
+}
+
+.achv-scan {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.achv-card:hover .achv-scan,
+.achv-card:focus-within .achv-scan {
+  transform: scale(1.025);
+}
+
+/**
+ * Glass: one raking reflection, the warm bloom the fixture puts on it, and —
+ * the layer that actually seats the certificate in the room — a falloff down
+ * the paper. The light comes from a lamp above, so the top of the sheet is
+ * warmer and the bottom sits in its own shade. Without it the paper reads as
+ * a lit rectangle pasted onto a dark photograph.
+ */
+.achv-glass {
+  background-image:
+    linear-gradient(
+      118deg,
+      rgba(248, 241, 231, 0) 30%,
+      rgba(248, 241, 231, 0.16) 41%,
+      rgba(248, 241, 231, 0.05) 49%,
+      rgba(248, 241, 231, 0) 60%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(255, 236, 208, calc(0.075 * var(--lit))) 0%,
+      rgba(0, 0, 0, 0) 32%,
+      rgba(26, 16, 8, 0.1) 74%,
+      rgba(26, 16, 8, 0.19) 100%
+    ),
+    radial-gradient(
+      70% 40% at 50% 0%,
+      rgba(255, 214, 150, calc(0.15 * var(--lit))) 0%,
+      transparent 70%
+    );
+}
+
+/** Contact shadow where the frame meets the wall. */
+.achv-cast {
+  background-image: radial-gradient(
+    50% 100% at 50% 0%,
+    rgba(0, 0, 0, 0.72) 0%,
+    transparent 72%
+  );
+  filter: blur(7px);
+}
+
+/* -------------------------------------------------------------------------- */
+/* The typeset plate — what a certificate with no scan uploaded shows         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Not a placeholder graphic: a certificate, set. Everything is in `cqw` so it
+ * fills its opening at any size, which is why the same component can serve the
+ * wall and the full-size viewer.
+ */
+.achv-plate {
+  color: #241b1b;
+  background-image:
+    radial-gradient(
+      120% 90% at 50% 0%,
+      rgba(255, 255, 255, 0.7) 0%,
+      transparent 60%
+    ),
+    linear-gradient(168deg, #f8f1e7 0%, #ece1d0 100%);
+}
+
+.achv-plate-rule {
+  height: 1px;
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    rgba(91, 15, 24, 0.45) 22%,
+    rgba(91, 15, 24, 0.45) 78%,
+    transparent
+  );
+}
+
+.achv-seal {
+  background-image: radial-gradient(
+    circle at 34% 30%,
+    rgba(126, 26, 38, 0.95),
+    rgba(72, 12, 20, 0.95)
+  );
+  box-shadow:
+    0 0 0 1px rgba(91, 15, 24, 0.35),
+    inset 0 0 0 1px rgba(248, 241, 231, 0.28);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Small screens                                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A phone viewport is portrait and the photograph is landscape, so `cover`
+ * would crop it to a strip of wall between two of the three pendants — one
+ * lamp off to one side, which reads as a mistake rather than as a room.
+ *
+ * Instead the photo is pinned to the top of the viewport at its own aspect
+ * ratio and blown out to 140% of the width. 140% is about the largest scale
+ * that still keeps the outermost lamps (at 19% and 81% of the frame) on
+ * screen, so all three fixtures survive at the biggest size they can. What
+ * would fall below the band — the console, the plant, the globe — is masked
+ * out into the wall's own black rather than cut off, so there is no seam.
+ */
+@media (max-width: 900px) {
+  .achv-room {
+    --room-drop: clamp(50px, 6.5vh, 74px);
+  }
+
+  .achv-room-shot {
+    right: -20%;
+    bottom: auto;
+    left: -20%;
+    aspect-ratio: 3 / 2;
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 44%,
+      rgba(0, 0, 0, 0.34) 72%,
+      transparent 93%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 44%,
+      rgba(0, 0, 0, 0.34) 72%,
+      transparent 93%
+    );
+  }
+
+  .achv-room-img {
+    object-position: 50% 0%;
+  }
+
+  /* With the photograph reduced to a band across the top, the rest of the
+     screen is bare wall again — so the plaster has to carry it, the way it
+     did before the photo existed. */
+  .achv-plaster {
+    opacity: 0.42;
+  }
+
+  .achv-room-grade {
+    background-image:
+      radial-gradient(
+        72% 30% at 50% 5%,
+        rgba(255, 200, 140, 0.05) 0%,
+        transparent 70%
+      ),
+      linear-gradient(
+        to bottom,
+        transparent 0%,
+        transparent 26%,
+        rgba(7, 7, 7, 0.3) 58%,
+        rgba(7, 7, 7, 0.6) 100%
+      );
+  }
+
+  .achv-vignette {
+    background-image: radial-gradient(
+      118% 74% at 50% 24%,
+      transparent 46%,
+      rgba(7, 7, 7, 0.34) 78%,
+      rgba(7, 7, 7, 0.72) 100%
+    );
+  }
+
+  /* Touch has no hover, so a fixture would never get its chance to swell.
+     The resting light level comes up to meet it instead. */
+  .achv-card {
+    --lit: 1.16;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Reduced motion                                                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The lift and the scan's scale are the only continuous motion here, so under
+ * reduced motion they go — but the *lighting* response stays. Brightening on
+ * hover is feedback, not animation, and removing it would leave keyboard
+ * users with no hover affordance at all.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .achv-card {
+    --lift: 0px;
+    transition: none;
+  }
+  .achv-card:hover,
+  .achv-card:focus-within {
+    --lift: 0px;
+  }
+  .achv-frame,
+  .achv-scan {
+    transition: none;
+  }
+  .achv-card:hover .achv-scan,
+  .achv-card:focus-within .achv-scan {
+    transform: none;
+  }
+}

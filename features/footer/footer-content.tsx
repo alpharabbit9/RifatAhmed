@@ -36,12 +36,19 @@ import {
 import { SectionScrollFx } from "@/components/motion/gsap/section-scroll-fx";
 import { scrollToTop } from "@/components/motion/smooth-scroll";
 
+/**
+ * Mirrors the navbar (`components/ui/notch-navbar.tsx`), and for the same
+ * reason its hrefs are absolute: the footer renders on `/projects` and
+ * `/achievements` as well, where a bare `#about` would look for a section on
+ * the page it is already on and find nothing.
+ */
 const NAV_LINKS = [
-  { label: "Home", href: "#home" },
-  { label: "About", href: "#about" },
-  { label: "Projects", href: "#projects" },
-  { label: "Experience", href: "#experience" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", href: "/#home" },
+  { label: "About", href: "/#about" },
+  { label: "Projects", href: "/projects" },
+  { label: "Experience", href: "/#experience" },
+  { label: "Achievements", href: "/achievements" },
+  { label: "Contact", href: "/#contact" },
 ];
 
 /**

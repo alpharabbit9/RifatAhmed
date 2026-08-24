@@ -97,6 +97,39 @@
     line-height: 0.95;
     text-transform: uppercase;
   }
+
+  /* ------------------------------------------------------------------------
+     Reduced motion — the CSS half (PLAN.md phase 9).
+
+     Three engines animate this site and each is switched off in its own way:
+
+       Framer Motion   `<MotionProvider>` in the root layout sets
+                       `reducedMotion="user"`, which drops transform and layout
+                       animation and keeps opacity.
+       GSAP            every effect is registered inside a `matchMedia`
+                       condition of `(prefers-reduced-motion: no-preference)`
+                       — see `components/motion/gsap/gsap-core.ts`.
+       Lenis           `respectReducedMotion` (its default) forces `lerp: 1`
+                       and makes programmatic scrolls instant.
+
+     This rule is the fourth: the CSS transitions written directly in markup —
+     the certificate wall's lighting, every hover state, the navbar underline.
+     None of them is load-bearing, so collapsing the duration is safe rather
+     than jumping an element to a half-finished position. There are no
+     `@keyframes` anywhere in the project; if one is ever added, check it
+     lands somewhere sensible at `animation-duration: 0.01ms` before relying
+     on this.
+     --------------------------------------------------------------------- */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 @layer utilities {

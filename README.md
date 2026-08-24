@@ -64,16 +64,24 @@ for the rare JS-side colour.
 - **About & Tech Stack** — narrative copy with `**highlighted**` spans,
   education cards, and capability groups rendered as logo pills.
 - **Projects** — showcase cards driven by the database, with featured ordering
-  and a draggable card stack.
+  and a draggable card stack; `/projects` is the full archive of everything
+  published.
 - **Case study pages** (`/projects/[slug]`) — about, key features, tech stack,
   highlight stats, challenge / solution / impact, and an image gallery.
 - **Career Journey** — a single-rail timeline: company logo, period and duration,
   what the company does, what the role owned, and the skills it used.
+- **Services** — an editorial row list of what the studio takes on.
+- **Achievements** (`/achievements`) — certificates hung on a lit gallery wall,
+  each opening full size in a viewer. Its own page, reached from the navbar,
+  rather than a band on the home page.
 - **Contact** — form posts straight into Postgres; no third-party email service
   in the loop.
-- **Motion** — Lenis smooth scrolling plus a small Framer Motion primitive set
-  (scroll reveals, parallax layers, rolling text, following pointer), all
-  respecting `prefers-reduced-motion`.
+- **Motion** — Lenis smooth scrolling, GSAP ScrollTrigger for scroll-*linked*
+  choreography and Framer Motion for entrances and hover states, split so the
+  two engines never animate the same element. All of it switches off under
+  `prefers-reduced-motion`.
+- **Discoverability** — Metadata API across every route, generated Open Graph
+  cards (including one per case study), `sitemap.xml` and `robots.txt`.
 - **Graceful degradation** — every read falls back to seeded sample content if
   its migration has not been applied yet, so the site never renders a hole.
 
@@ -144,6 +152,7 @@ Fill it in from **Supabase → Project Settings → API**:
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key — RLS does the gating |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Server-only.** Used solely by the admin-provisioning script |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Credentials for the one admin user |
+| `NEXT_PUBLIC_SITE_URL` | Optional. Canonical origin for OG images, canonicals, `robots.txt` and `sitemap.xml`. Falls back to the Vercel deployment host, then `http://localhost:3000` — set it once a real domain is attached |
 
 `.env*.local` is gitignored — never commit real keys.
 
@@ -260,27 +269,49 @@ Design_System.md             visual source of truth
 
 | # | Section | Public | Admin |
 | --- | --- | :---: | :---: |
-| 1 | Hero | ✅ | ⬜ |
+| 1 | Hero | ✅ | ✅ |
 | 2 | About & Tech Stack | ✅ | ✅ |
-| 3 | Projects + case studies | ✅ | ✅ |
+| 3 | Projects + case studies + `/projects` index | ✅ | ✅ |
 | 4 | Career Journey | ✅ | ✅ |
-| 5 | Services | ⬜ | ⬜ |
+| 5 | Services | ✅ | ✅ |
 | 6 | Contact | ✅ | ✅ |
 | 7 | Footer | ✅ | ✅ |
+| 8 | Achievements (`/achievements`) | ✅ | ✅ |
+| 9 | Cross-cutting polish | ✅ | — |
 
-Remaining: the Services section, a `/projects` index grid, plus the
-cross-cutting polish pass — metadata and per-project OG images, sitemap/robots,
-Vercel Analytics, accessibility and Lighthouse.
+Phase 9 shipped the Metadata API pass (title template, canonicals, generated
+Open Graph cards per route and per project), `sitemap.xml` / `robots.txt`, the
+site-wide reduced-motion switch and a responsive sweep. Vercel Analytics is
+deliberately **not** installed — it is a two-line addition
+(`npm i @vercel/analytics`, then `<Analytics />` in the root layout) whenever
+it is wanted.
 
 ---
 
 ## Deployment
 
 Deploys to **Vercel**: import the repo, add the same environment variables from
-`.env.local`, and ship. [next.config.ts](next.config.ts) already allow-lists
-`*.supabase.co/storage/v1/object/public/**` so `next/image` can optimise
-uploaded media. Schema changes still go to Supabase by hand — there is no
-staging database, so take a backup before anything destructive.
+`.env.local`, and ship. Schema changes still go to Supabase by hand — there is
+no staging database, so take a backup before anything destructive.
+
+Two pieces of config already in [next.config.ts](next.config.ts) matter in
+production:
+
+- `images.remotePatterns` allow-lists `*.supabase.co/storage/v1/object/public/**`
+  so `next/image` can optimise uploaded media.
+- `outputFileTracingIncludes` copies `public/fonts/*.ttf` next to the
+  `opengraph-image` functions — they read Brunson and Inter off disk at request
+  time, and without it every social card renders in a fallback face.
+
+After the first deploy:
+
+1. Set `NEXT_PUBLIC_SITE_URL` to the real domain (Vercel's own host is used
+   until you do, which is fine for a preview and wrong for a custom domain).
+2. Check `/robots.txt` and `/sitemap.xml` — the sitemap lists `/`, `/projects`,
+   `/achievements` and every published case study.
+3. Paste the deployed URL into any link unfurler and confirm the Open Graph
+   card renders with the display face, then submit the sitemap in Google Search
+   Console.
 
 ---
 

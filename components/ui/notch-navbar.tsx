@@ -1,22 +1,48 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
+/**
+ * Section links are absolute (`/#about`, not `#about`) so the navbar works
+ * from every route: on the home page `SmoothScroll` recognises the same-path
+ * fragment and scrolls to it, and from `/projects` the browser navigates home
+ * and lands on the section.
+ *
+ * Two of these are real pages rather than fragments. Projects is the archive
+ * of everything published, of which the home section shows only the featured
+ * set; Achievements is the certificate wall, which lives entirely on its own
+ * route and appears nowhere on the home page.
+ */
 const NAV_ITEMS = {
   left: [
-    { label: "Home", href: "#home" },
-    { label: "About", href: "#about" },
-    { label: "Projects", href: "#projects" },
+    { label: "Home", href: "/#home" },
+    { label: "About", href: "/#about" },
+    { label: "Projects", href: "/projects" },
   ],
   right: [
-    { label: "Experience", href: "#experience" },
-    { label: "Contact", href: "#contact" },
+    { label: "Experience", href: "/#experience" },
+    { label: "Achievements", href: "/achievements" },
+    { label: "Contact", href: "/#contact" },
   ],
 };
+
+/**
+ * Which link is underlined, from the route alone.
+ *
+ * Only routes are tracked, not scroll position: the sections share one page,
+ * so "Home" stands for all of them. `/projects` and `/projects/<slug>` both
+ * belong to Projects.
+ */
+function activeNavLabel(pathname: string): string {
+  if (pathname.startsWith("/projects")) return "Projects";
+  if (pathname.startsWith("/achievements")) return "Achievements";
+  return pathname === "/" ? "Home" : "";
+}
 
 const BORDER = "rgba(248, 241, 231, 0.14)";
 
@@ -55,6 +81,7 @@ export function NotchNavbar({
   ...props
 }: React.HTMLAttributes<HTMLElement> & { logo?: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const activeLabel = activeNavLabel(usePathname());
 
   return (
     <>
@@ -120,12 +147,12 @@ export function NotchNavbar({
 
             <div className="relative flex h-full w-full items-end justify-between px-5 pb-5 md:px-10">
               {/* Desktop left nav */}
-              <nav className="mb-0.5 hidden shrink-0 gap-9 md:flex">
+              <nav className="mb-0.5 hidden shrink-0 gap-6 md:flex lg:gap-9">
                 {NAV_ITEMS.left.map((item) => (
                   <NavLink
                     key={item.label}
                     {...item}
-                    active={item.label === "Home"}
+                    active={item.label === activeLabel}
                   />
                 ))}
               </nav>
@@ -147,7 +174,7 @@ export function NotchNavbar({
               <div className="mx-2 mt-1 flex shrink-0 justify-center md:mx-5">
                 {props.logo || (
                   <Link
-                    href="#home"
+                    href="/#home"
                     className="group relative flex items-center justify-center"
                   >
                     <Image
@@ -163,9 +190,13 @@ export function NotchNavbar({
               </div>
 
               {/* Desktop right nav */}
-              <nav className="hidden shrink-0 items-center gap-9 md:flex">
+              <nav className="hidden shrink-0 items-center gap-6 md:flex lg:gap-9">
                 {NAV_ITEMS.right.map((item) => (
-                  <NavLink key={item.label} {...item} />
+                  <NavLink
+                    key={item.label}
+                    {...item}
+                    active={item.label === activeLabel}
+                  />
                 ))}
               </nav>
 
@@ -227,7 +258,13 @@ export function NotchNavbar({
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="rounded-lg p-3 font-sans text-sm font-medium uppercase tracking-[0.08em] text-foreground-muted transition-colors hover:bg-surface-elevated hover:text-foreground"
+                  className={cn(
+                    "rounded-lg p-3 font-sans text-sm font-medium uppercase tracking-[0.08em]",
+                    "transition-colors hover:bg-surface-elevated hover:text-foreground",
+                    item.label === activeLabel
+                      ? "bg-accent-soft text-foreground"
+                      : "text-foreground-muted",
+                  )}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.label}
