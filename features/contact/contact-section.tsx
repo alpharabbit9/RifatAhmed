@@ -30,7 +30,7 @@ import {
 } from "@/components/motion/scroll-reveal";
 import { GsapWords } from "@/components/motion/gsap/gsap-words";
 
-const DEFAULT_EMAIL = "hello@rifatahmed.dev";
+const DEFAULT_EMAIL = "rifatahm033@gmail.com";
 
 /* -------------------------------------------------------------------------- */
 /* Form field                                                                 */
