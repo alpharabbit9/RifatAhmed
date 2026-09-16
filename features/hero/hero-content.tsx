@@ -554,7 +554,7 @@ export function HeroSectionContent({
           variants={stagger}
           initial="hidden"
           animate="show"
-          className="flex flex-col px-[6%] pb-16 pt-6 lg:hidden"
+          className="flex flex-col px-[6%] pb-16 pt-10 lg:hidden"
         >
           {copy}
           <MobilePortrait
@@ -565,12 +565,20 @@ export function HeroSectionContent({
           {pitch}
         </motion.div>
 
-        {/* Desktop three-zone grid: left 32% / center 43% / right 25% */}
+        {/* Desktop three-zone grid: left 32% / center 43% / right 25%.
+
+            The vertical padding is symmetric on purpose. The left column is
+            centred in `100vh - 80px`, so on a short viewport (1366x768) the
+            content is already taller than that box and starts flush against
+            the navbar with no gap at all. Top padding alone would fix the gap
+            but push the CTAs past the fold, so the same amount comes off the
+            bottom: short viewports gain the full 40px of breathing room, tall
+            ones gain half of it through the shifted centre. */}
         <motion.div
           variants={stagger}
           initial="hidden"
           animate="show"
-          className="hidden px-[clamp(24px,6.5vw,110px)] pb-16 lg:grid lg:min-h-[calc(100vh-80px)] lg:grid-cols-[32%_43%_25%] lg:items-center"
+          className="hidden px-[clamp(24px,6.5vw,110px)] pb-10 pt-10 lg:grid lg:min-h-[calc(100vh-80px)] lg:grid-cols-[32%_43%_25%] lg:items-center"
         >
           <div className="relative z-10 flex flex-col justify-center">
             {copy}
