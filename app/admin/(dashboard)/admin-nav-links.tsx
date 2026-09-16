@@ -11,6 +11,7 @@ import {
   Inbox,
   LayoutDashboard,
   Layers,
+  Mail,
   Milestone,
   PanelBottom,
   UserRound,
@@ -57,6 +58,10 @@ const NAV_ITEMS: NavItem[] = [
     icon: Award,
     built: true,
   },
+  // Site order: the Contact section sits between Achievements and the footer.
+  // "Contact" is the details people reach you on; "Messages" is the inbox the
+  // form fills.
+  { href: "/admin/contact", label: "Contact", icon: Mail, built: true },
   { href: "/admin/messages", label: "Messages", icon: Inbox, built: true },
   { href: "/admin/footer", label: "Footer", icon: PanelBottom, built: true },
 ];

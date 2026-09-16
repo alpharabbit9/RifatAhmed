@@ -12,7 +12,7 @@
 import * as React from "react";
 import { useActionState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, Check, Loader2, Mail, MapPin } from "lucide-react";
+import { ArrowUpRight, Check, Loader2, Mail, MapPin, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { submitContactMessage } from "@/features/contact/actions";
 import {
@@ -29,8 +29,7 @@ import {
   ScrollRule,
 } from "@/components/motion/scroll-reveal";
 import { GsapWords } from "@/components/motion/gsap/gsap-words";
-
-const DEFAULT_EMAIL = "rifatahm033@gmail.com";
+import { DEFAULT_CONTACT } from "@/features/contact/constants";
 
 /* -------------------------------------------------------------------------- */
 /* Form field                                                                 */
@@ -251,14 +250,22 @@ function DirectLine({
 /* -------------------------------------------------------------------------- */
 
 export interface ContactSectionProps {
-  /** Overridable so a later phase can feed this from `profile` without edits. */
+  /**
+   * Fed from the `profile` singleton by `app/page.tsx` — see
+   * `features/contact/data.ts`. The defaults are only a safety net for a
+   * render that happens before the details have been read.
+   */
   email?: string;
+  phone?: string;
   location?: string;
+  availabilityLabel?: string;
 }
 
 export function ContactSection({
-  email = DEFAULT_EMAIL,
-  location = "Dhaka, Bangladesh — working worldwide",
+  email = DEFAULT_CONTACT.email,
+  phone = DEFAULT_CONTACT.phone,
+  location = DEFAULT_CONTACT.location,
+  availabilityLabel = DEFAULT_CONTACT.availability_label,
 }: ContactSectionProps = {}) {
   const [state, formAction, isPending] = useActionState<
     ContactFormState,
@@ -342,26 +349,40 @@ export function ContactSection({
                   href={`mailto:${email}`}
                 />
               </RevealItem>
-              <RevealItem>
-                <DirectLine
-                  icon={MapPin}
-                  label="Based in"
-                  value={location}
-                />
-              </RevealItem>
+              {/* Both of these are optional: a blank field in /admin/contact
+                  hides its row rather than printing an empty line. */}
+              {phone && (
+                <RevealItem>
+                  <DirectLine
+                    icon={Phone}
+                    label="Phone"
+                    value={phone}
+                    // Spaces, dashes and brackets are for reading, not for
+                    // dialling — `tel:` wants the bare number.
+                    href={`tel:${phone.replace(/[^\d+]/g, "")}`}
+                  />
+                </RevealItem>
+              )}
+              {location && (
+                <RevealItem>
+                  <DirectLine icon={MapPin} label="Based in" value={location} />
+                </RevealItem>
+              )}
             </RevealGroup>
 
-            <Reveal delay={0.25} className="mt-10">
-              <span className="inline-flex items-center gap-2.5 rounded-full bg-accent-soft px-4 py-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inset-0 rounded-full bg-primary/40 blur-[3px]" />
-                  <span className="relative h-2 w-2 rounded-full bg-primary" />
+            {availabilityLabel && (
+              <Reveal delay={0.25} className="mt-10">
+                <span className="inline-flex items-center gap-2.5 rounded-full bg-accent-soft px-4 py-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inset-0 rounded-full bg-primary/40 blur-[3px]" />
+                    <span className="relative h-2 w-2 rounded-full bg-primary" />
+                  </span>
+                  <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground-muted">
+                    {availabilityLabel}
+                  </span>
                 </span>
-                <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground-muted">
-                  Available for freelance &amp; full-time
-                </span>
-              </span>
-            </Reveal>
+              </Reveal>
+            )}
           </div>
 
           {/* ---------------------------------------------------------------- */}

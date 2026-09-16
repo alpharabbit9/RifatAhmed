@@ -18,6 +18,7 @@ import {
   FALLBACK_LOGO,
   FALLBACK_PORTRAIT,
 } from "@/features/hero/constants";
+import { DEFAULT_CONTACT } from "@/features/contact/constants";
 
 export type HeroProfile = {
   id: string | null;
@@ -82,7 +83,13 @@ export const DEFAULT_PROFILE: HeroProfile = {
 export const DEFAULT_SOCIALS = [
   { id: "default-github", platform: "GitHub", url: "https://github.com" },
   { id: "default-linkedin", platform: "LinkedIn", url: "https://linkedin.com" },
-  { id: "default-email", platform: "Email", url: "mailto:hello@rifatahmed.dev" },
+  {
+    id: "default-email",
+    platform: "Email",
+    // The same address the contact section and the footer print — this used
+    // to be a third, different one.
+    url: `mailto:${DEFAULT_CONTACT.email}`,
+  },
 ];
 
 /* -------------------------------------------------------------------------- */

@@ -169,3 +169,70 @@ export async function markAllMessagesRead() {
   revalidatePath("/admin/messages");
   return { ok: true as const };
 }
+
+/* -------------------------------------------------------------------------- */
+/* Contact details (the `profile` singleton)                                  */
+/* -------------------------------------------------------------------------- */
+
+export type ActionResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * The email, phone, address and availability pill printed by the contact
+ * section and the footer. They live on `profile` rather than a table of their
+ * own — it is the same person's identity as the name and the CV, and one row
+ * is what stops the footer and the contact section disagreeing again.
+ */
+export async function updateContactDetails(
+  formData: FormData,
+): Promise<ActionResult> {
+  const supabase = await requireAdmin();
+
+  const email = readField(formData, "contact_email");
+  if (!email) {
+    return { ok: false, error: "An email address is required." };
+  }
+  if (!EMAIL_PATTERN.test(email)) {
+    return { ok: false, error: "That doesn't look like a valid email address." };
+  }
+  if (email.length > LIMITS.email.max) {
+    return { ok: false, error: "That email address is too long." };
+  }
+
+  const payload = {
+    contact_email: email,
+    // Stored exactly as typed so it reads the way the admin wrote it
+    // (+880 1XXX-XXXXXX); only the `tel:` href strips the formatting.
+    contact_phone: readField(formData, "contact_phone"),
+    contact_location: readField(formData, "contact_location"),
+    availability_label: readField(formData, "availability_label"),
+    updated_at: new Date().toISOString(),
+  };
+
+  // Singleton: update the existing row, insert the first one if absent.
+  const { data: existing, error: readError } = await supabase
+    .from("profile")
+    .select("id")
+    .limit(1)
+    .maybeSingle();
+
+  if (readError) {
+    return { ok: false, error: readError.message };
+  }
+
+  const { error } = existing?.id
+    ? await supabase.from("profile").update(payload).eq("id", existing.id)
+    : await supabase.from("profile").insert(payload);
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  // The footer prints the email too, and it renders on these routes as well —
+  // revalidating only "/" would leave a stale address on the other two.
+  revalidatePath("/");
+  revalidatePath("/projects");
+  revalidatePath("/achievements");
+  revalidatePath("/admin/contact");
+
+  return { ok: true };
+}
